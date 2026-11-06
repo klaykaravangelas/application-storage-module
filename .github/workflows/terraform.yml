@@ -28,13 +28,9 @@ jobs:
       - name: Check formatting
         run: terraform fmt -check -recursive
 
-      - name: Reuse example lock for module tests
-        if: matrix.directory == 'modules/application_storage'
-        run: cp examples/non-production/.terraform.lock.hcl modules/application_storage/.terraform.lock.hcl
-
       - name: Initialize
         working-directory: ${{ matrix.directory }}
-        run: terraform init -backend=false -input=false -lockfile=readonly
+        run: terraform init -backend=false -input=false
 
       - name: Validate
         working-directory: ${{ matrix.directory }}

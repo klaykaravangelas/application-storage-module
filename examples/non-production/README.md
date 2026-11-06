@@ -37,7 +37,8 @@ file is ignored by Git. AWS credentials stay in your normal profile or environme
 to the child module. `providers.tf` pins Terraform to `1.16.1`, pins the AWS
 provider to `6.72.0`, and configures the AWS Region. The Terraform pin matches CI
 and requires that CLI version to be installed; it does not install Terraform.
-The lock file records provider package checksums. The reusable child module
+Initialization generates a local lock file with provider package checksums.
+The example's lock file is not ignored by Git. The reusable child module
 declares minimum versions so other consumers can choose their supported versions.
 
 ## Validate without AWS credentials
@@ -58,8 +59,7 @@ no AWS resources.
 Initialization needs access to provider packages or a configured local cache/mirror.
 
 This command runs the example's tests. The [module documentation](../../README.md)
-has the commands for its separate suite, including reuse of the example's
-provider lock file for standalone tests. CI runs both suites; any failure makes
+has the commands for its separate suite. CI runs both suites; any failure makes
 the overall workflow fail.
 
 ## Generate a plan with the real provider

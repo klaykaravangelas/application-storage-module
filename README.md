@@ -215,7 +215,6 @@ Run from the repository root:
 
 ```sh
 terraform fmt -check -recursive
-cp examples/non-production/.terraform.lock.hcl modules/application_storage/.terraform.lock.hcl
 terraform -chdir=modules/application_storage init -backend=false
 terraform -chdir=modules/application_storage validate
 terraform -chdir=modules/application_storage test
@@ -225,12 +224,11 @@ terraform -chdir=examples/non-production test
 ```
 
 Initialization downloads provider packages, or uses a configured local cache or
-mirror. Standalone module tests reuse the example's provider lock file so they
-test the same provider release. This local module lock file is ignored by Git;
-the consuming root's lock file controls provider selection when using the child
-module. All test runs use a mocked AWS provider and `command = plan`; they need no
-AWS credentials and create no AWS resources. Mocked plans check the module's
-configuration rather than AWS authorization, name availability, or live behavior.
+mirror. Each directory generates its own provider lock file during initialization.
+Only the standalone child module's lock file is ignored by Git. All test runs use
+a mocked AWS provider and `command = plan`; they need no AWS credentials and
+create no AWS resources. Mocked plans check the module's configuration rather
+than AWS authorization, name availability, or live behavior.
 
 Ten module test runs cover the core behaviors:
 
@@ -270,20 +268,20 @@ AWS provider's authentication requirement for a normal plan.
 ## CI validation
 
 The [GitHub Actions workflow](.github/workflows/terraform.yml) runs on pushes,
-pull requests, and manual dispatch. It checks formatting, initializes using the
-committed example provider lock file, validates, and runs mocked plan tests for both the
-module and the non-production example as separate matrix jobs. Failure in either
+pull requests, and manual dispatch. It checks formatting, initializes, validates,
+and runs mocked plan tests for both the module and the non-production example
+as separate matrix jobs. Failure in either
 job makes the overall workflow fail, even if the other job passes. The example
 test supplies its own inputs, so CI needs neither a local `.tfvars` file nor AWS
 credentials.
 
-For standalone module tests, CI copies the example's lock file into the module
-test workspace before initialization. The child module does not distribute its
-own lock file.
+Each job runs `terraform init` to select providers and generate a lock file for
+the runner's platform. CI does not commit these generated files. The example uses
+its exact AWS provider requirement of `6.72.0`; standalone module tests select the
+latest available provider satisfying the module's `>= 6.0.0` requirement.
 
 Terraform is pinned to 1.16.1 and the two Actions are pinned to verified commit
-SHAs. The job has read-only repository permissions. The example's lock file retains
-the selected AWS provider version and checksums for reproducible initialization.
+SHAs. The job has read-only repository permissions.
 
 ## Assumptions and tradeoffs
 
